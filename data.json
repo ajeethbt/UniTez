@@ -1,0 +1,30 @@
+{
+  "physics": {
+    "oscillation": {
+      "card_0": [
+        "When did India Get Independence",
+        [
+          1951,
+          1947,
+          1948,
+          1949,
+          2
+        ]
+      ],
+      "card_1": [
+        "yes",
+        "no"
+      ],
+      "card_2": [
+        "yes",
+        "no"
+      ],
+      "card_3": [
+        "yes",
+        "no"
+      ]
+    }
+  },
+  "chemistry": {},
+  "maths": {}
+}

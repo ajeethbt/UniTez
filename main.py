@@ -1,39 +1,40 @@
 import jellyfish
 import json
-
-dict_ = {
-    "physics": {
-        "oscillation":
-            {
-                "card_0":
-                    ["When did India Get Independence", [1951, 1947, 1948, 1949, 2]]
-
-            }
-    }
-}
-chapters = ""
-chapter = ""
-chapter_selection = ""
-subject = input("Subject: ").lower()
-if subject in dict_:
-    chapters = dict_[subject]
-    chapter = input("Chapter: ").lower()
-    if chapter in chapters:
-        chapter_selection = dict_[subject][chapter]
-        print(f"There are {len(dict_.get(subject).get(chapter))} cards in this chapter")
-        cards = dict_.get(subject).get(chapter)
-        print(
-            f"\n\nQuestion: {list(cards.values())[0][0]}\nOptions: "
-            f"{' '.join(map(str, list(cards.values())[0][1][:3]))}")
+import re
 
 
-    else:
-        if jellyfish.jaro_similarity("oscillations", chapter) * 100 >= 60:
-            print(f"{chapter} is not found, did you mean oscillations?")
-        else:
-            print(f"{chapter} is not found, please try again")
-else:
-    if jellyfish.jaro_similarity("physics", subject) * 100 >= 60:
-        print(f"{subject} is not found, did you mean physics?")
-    else:
-        print(f"{subject} is not found, please try again")
+class Unitez:
+    def __init__(self, chapter, subject):
+        self.location = [chapter, subject]
+        open1 = open('data.json', 'r')
+        card_datas = json.load(open1)
+        open1.close()
+        self.card_data = card_datas
+
+    def card_refresh(self):
+        with open('data.json', 'w') as file_w:
+            json.dump(self.card_data, file_w, indent=2)
+        with open('data.json', 'r') as file_r:
+            self.card_data = json.load(file_r)
+
+    def add_card(self, question, option):
+        cards = list(json.load(open('data.json', 'r'))[self.location[1]][self.location[0]].keys())
+        number_card = 0
+        for i in cards:
+            number_card = int(re.sub("card_", "", i))
+        self.card_data[self.location[1]][self.location[0]]["card_" + str(number_card + 1)] = [question, option]
+        self.card_refresh()
+        print(self.card_data)
+
+    def delete_card(self, card_number):
+        del self.card_data[self.location[1]][self.location[0]]["card_" + str(card_number)]
+        cards = list(self.card_data[self.location[1]][self.location[0]].keys())
+        print(cards)
+        print(self.card_data)
+
+        # card_data[self.location[1]][self.location[0]]
+
+
+test = Unitez("oscillation", "physics")
+# test.add_card('yes', 'no')
+test.delete_card(2)
