@@ -11,6 +11,19 @@ class Unitez:
         open1.close()
         self.card_data = card_datas
 
+    def card_organizer(self):
+        cards = sorted(self.card_keys(), key=lambda x: int(re.sub("card_", "", x)))
+        for index, key in enumerate(cards):
+            if key != "card_" + str(index):
+                self.card_data[self.location[1]][self.location[0]]["card_" + str(index)] = \
+                    self.card_data[self.location[1]][self.location[0]][key]
+                del self.card_data[self.location[1]][self.location[0]][key]
+                self.card_refresh()
+
+    def card_keys(self):
+        self.card_refresh()
+        return list(self.card_data[self.location[1]][self.location[0]].keys())
+
     def card_refresh(self):
         with open('data.json', 'w') as file_w:
             json.dump(self.card_data, file_w, indent=2)
@@ -18,7 +31,7 @@ class Unitez:
             self.card_data = json.load(file_r)
 
     def add_card(self, question, option):
-        cards = list(json.load(open('data.json', 'r'))[self.location[1]][self.location[0]].keys())
+        cards = self.card_keys()
         number_card = 0
         for i in cards:
             number_card = int(re.sub("card_", "", i))
@@ -26,15 +39,14 @@ class Unitez:
         self.card_refresh()
         print(self.card_data)
 
-    def delete_card(self, card_number):
+    def card_del(self, card_number):
         del self.card_data[self.location[1]][self.location[0]]["card_" + str(card_number)]
-        cards = list(self.card_data[self.location[1]][self.location[0]].keys())
-        print(cards)
-        print(self.card_data)
-
+        self.card_refresh()
+        self.card_organizer()
         # card_data[self.location[1]][self.location[0]]
 
 
 test = Unitez("oscillation", "physics")
-# test.add_card('yes', 'no')
-test.delete_card(2)
+# test.add_card('yefs', 'no')
+test.card_del(2)
+test.card_organizer()
