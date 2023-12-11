@@ -1,4 +1,4 @@
-import jellyfish
+import jellyfish  # not used as of now
 import json
 import re
 
@@ -21,9 +21,28 @@ class Unitez:
                 del self.card_data[self.location[1]][self.location[0]][key]
                 self.card_refresh()
 
-    def card_location_check(self):
-        if any(element == "NA" for element in self.location):
-            raise TypeError("Location of Card not specified, provide \"chapter\" and \"subject\"")
+    def card_subject_search(self):
+        self.card_refresh()
+        return list(self.card_data.keys())
+
+    def card_chapter_search(self):
+        self.card_refresh()
+        try:
+            self.card_location_check("subject")
+            return list(self.card_data[self.location[1]].keys())
+        except TypeError:
+            print("Location of Card not specified, provide \"chapter\" and \"subject\"")
+
+    def card_location_check(self, card_type="all"):
+        if "chapter" in card_type.lower():
+            if "NA" in self.location[0]:
+                raise TypeError("Location of Card not specified, provide \"chapter\" and \"subject\"")
+        elif "subject" in card_type.lower():
+            if "NA" in self.location[1]:
+                raise TypeError("Location of Card not specified, provide \"chapter\" and \"subject\"")
+        elif "all" in card_type.lower():
+            if any(element == "NA" for element in self.location):
+                raise TypeError("Location of Card not specified, provide \"chapter\" and \"subject\"")
 
     def card_keys(self):
         self.card_location_check()
@@ -31,7 +50,6 @@ class Unitez:
         return list(self.card_data[self.location[1]][self.location[0]].keys())
 
     def card_refresh(self):
-        self.card_location_check()
         with open('data.json', 'w') as file_w:
             json.dump(self.card_data, file_w, indent=2)
         with open('data.json', 'r') as file_r:
@@ -57,20 +75,37 @@ class Unitez:
 
 class Console:
     def __init__(self):
-        self.Unitez = Unitez("oscillation", "physics")
-        self.loc = ["NA","NA"]
+        self.loc = ["NA", "NA"]
+        self.Unitez = Unitez(self.loc[0], self.loc[1])
+
+    def console_refresh(self):
+        self.Unitez = Unitez(self.loc[0], self.loc[1])
 
     def console_start(self):
         while True:
-            something = self.console_in()
+            self.console_inputs()
 
-    def location(self):
-
-        (self.console_in().strip())
-        return "hi"
+    def console_inputs(self):
+        input_c = self.console_in().replace(" ", "").lower()
+        if re.search("^chp", input_c):
+            if "NA" not in self.loc[1]:
+                self.loc[0] = re.sub("^chp", "", input_c)
+                self.console_refresh()
+            else:
+                print("Error: Specify Subject first")
+        elif re.search("^sub", input_c):
+            self.loc[1] = re.sub("^sub", "", input_c)
+            self.console_refresh()
+        elif re.search("^list", input_c):
+            if re.search("^sub", re.sub("^list", "", input_c)):
+                for chapter in self.Unitez.card_subject_search():
+                    print(chapter)
+            if re.search("^chap", re.sub("^list", "", input_c)):
+                for chapter in self.Unitez.card_chapter_search():
+                    print(chapter)
 
     def console_in(self):
-        return input(f"Console({self.location()}): ")
+        return input(f"Console(/{self.loc[1]}/{self.loc[0]}): ")
 
 
 console = Console()
