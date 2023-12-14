@@ -63,7 +63,6 @@ class Unitez:
 
     def card_search(self):
         self.card_location_check()
-        card_data = self.card_data
         cards_ = []
         cards = self.card_keys()
         for i, card in enumerate(cards):
@@ -90,6 +89,13 @@ class Unitez:
         del self.card_data[self.location[1]][chapter]
         self.card_refresh()
 
+    def card_chapter_keys(self):
+        self.card_location_check("subject")
+        return self.card_data[self.location[1]].keys()
+
+    def card_subject_keys(self):
+        return self.card_data.keys()
+
     def card_del(self, card_number):
         self.card_location_check()
         del self.card_data[self.location[1]][self.location[0]]["card_" + str(card_number)]
@@ -114,21 +120,35 @@ class Console:
         input_c = self.console_in().lower()
         if re.search("^chp", input_c):
             if "NA" not in self.loc[1]:
-                self.loc[0] = re.sub(r"^chp(\s+)", "", input_c)
+                chapter = re.sub(r"^chp(\s+)", "", input_c)
+                if chapter in list(self.Unitez.card_chapter_keys()):
+                    self.loc[0] = chapter
+                    self.console_refresh()
+                else:
+                    print("Chapter not found")
+            else:
+                print("Specify Subject first")
+        elif re.search("^sub", input_c):
+            subject = re.sub(r"^sub(\s+)", "", input_c)
+            if subject in list(self.Unitez.card_subject_keys()):
+                self.loc[1] = subject
+                self.loc[0] = "NA"
                 self.console_refresh()
             else:
-                print("Error: Specify Subject first")
-        elif re.search("^sub", input_c):
-            self.loc[1] = re.sub(r"^sub(\s+)", "", input_c)
-            self.loc[0] = "NA"
-            self.console_refresh()
+                print("Subject not found")
         elif re.search("^list", input_c):
             if re.search("^sub", re.sub(r"^list(\s+)", "", input_c)):
-                for chapter in self.Unitez.card_subject_search():
-                    print(chapter)
+                try:
+                    for chapter in self.Unitez.card_subject_search():
+                        print(chapter)
+                except TypeError as Error:
+                    print(Error)
             elif re.search("^chap", re.sub(r"^list(\s+)", "", input_c)):
-                for chapter in self.Unitez.card_chapter_search():
-                    print(chapter)
+                try:
+                    for chapter in self.Unitez.card_chapter_search():
+                        print(chapter)
+                except TypeError as Error:
+                    print(Error)
         elif re.search("^add", input_c):
             if not self.loc[0] == 'NA':
                 try:
@@ -139,13 +159,15 @@ class Console:
                     if re.search("^4option", input_c):
                         for i in range(4):
                             options.append(input(f"Option{i + 1}: "))
-                    self.console_refresh()
-                    self.Unitez.card_add(str(question.replace("\"", "")), options)
+                        self.console_refresh()
+                        self.Unitez.card_add(str(question.replace("\"", "")), options)
+                    else:
+                        print("Type of card not specified, card not added")
                 except TypeError as error:
                     print(error)
             elif self.loc[0] == 'NA':
                 input_c = re.sub(r"^add(\s+)", "", input_c)
-                chapter = str("".join(re.findall("\".*\"|\'.*\'", input_c)).replace("\"", "").replace(" ",""))
+                chapter = str("".join(re.findall("\".*\"|\'.*\'", input_c)).replace("\"", "").replace(" ", ""))
                 self.Unitez.card_chapter_add(chapter)
         elif re.search("^lc", input_c):
             try:
@@ -166,8 +188,24 @@ class Console:
                 self.Unitez.card_chapter_del(chapter)
 
         elif re.search("^card_", input_c):
-            input_c = input_c.replace(" ", "")
-            print(input_c + r": " + self.Unitez.card_read(input_c))
+            if input_c.replace(" ", "") in list(self.Unitez.card_keys()):
+                try:
+                    input_c = input_c.replace(" ", "")
+                    print(input_c + r": " + self.Unitez.card_read(input_c))
+                except TypeError as Error:
+                    print(Error)
+            else:
+                card_error = input_c.replace(" ", "")
+                print(f"{card_error} doesnt exist")
+        elif r"../" == input_c.replace(" ", ""):
+            if not self.loc[0] == 'NA':
+                self.loc[0] = "NA"
+                self.console_refresh()
+            else:
+                self.loc[1] = 'NA'
+                self.console_refresh()
+        else:
+            print(f"dont know what {input_c} means, please look at the documentation")
 
     def console_in(self):
         return input(f"Console(/{self.loc[1]}/{self.loc[0]}): ")
